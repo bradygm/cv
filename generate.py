@@ -444,7 +444,8 @@ def add_repo_data(context, config, in_tex):
             if desc_elem:
                 item['desc'] = desc_elem.text.strip()
 
-    return truncate_to_k(total_stars)
+    # return truncate_to_k(total_stars)
+    return total_stars
 
 def get_scholar_stats(scholar_id):
     scholar_stats = shelve.open('scholar_stats.shelf')
@@ -452,7 +453,8 @@ def get_scholar_stats(scholar_id):
         author = scholarly.search_author_id(scholar_id)
         author = scholarly.fill(author, sections=['indices'])
         scholar_stats['h_index'] = author['hindex']
-        scholar_stats['citations'] = truncate_to_k(author['citedby'])
+        # scholar_stats['citations'] = truncate_to_k(author['citedby'])
+        scholar_stats['citations'] = author['citedby']
     return scholar_stats
 
 def check_author_urls(author_urls_dict):
