@@ -14,5 +14,12 @@
     {\footnotesize \color{gray} (<< item.inline_detail >>)}
     ~< endif >~
     \hfill << item.dates >> \par
+    ~< if item.details >~
+        \begin{itemize} %[leftmargin=*] 
+            ~< for d in item.details >~
+                \item {\footnotesize \color{gray} << d >>}
+            ~< endfor >~
+        \end{itemize} \par
+    ~< endif >~ 
 ~< endfor >~
 ~< endblock body >~
