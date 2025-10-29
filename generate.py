@@ -351,28 +351,25 @@ def get_pub_latex(context, config):
     if sort_bib:
         pubs = sorted(pubs, key=lambda pub: int(pub['year']), reverse=True)
 
-    if group_by_year:
-        for pub in pubs:
-            m = re.search(r'(\d{4})', pub['year'])
-            assert m is not None
-            pub['year_int'] = int(m.group(1))
+    for pub in pubs:
+        m = re.search(r'(\d{4})', pub['year'])
+        assert m is not None
+        pub['year_int'] = int(m.group(1))
 
-        details = ''
-        gidx = 1
-        for year, year_pubs in groupby(pubs, lambda pub: pub['year_int']):
-            print_year = year >= 2015
-            if print_year:
-                year_str = str(year)
-                if year == 2015:
-                    year_str = "2015 and earlier"
-                details += rf'\subsection{{{year_str}}}' + '\n'
+    details = ''
+    gidx = 1
+    for year, year_pubs in groupby(pubs, lambda pub: pub['year_int']):
+        # print_year = year >= 2015
+        if group_by_year:
+            year_str = str(year)
+            if year == 2015:
+                year_str = "2015 and earlier"
+            details += rf'\subsection{{{year_str}}}' + '\n'
 
-            for i, pub in enumerate(year_pubs):
-                details += _get_pub_str(pub, '', gidx) + sep
-                gidx += 1
+        for i, pub in enumerate(year_pubs):
+            details += _get_pub_str(pub, '', gidx) + sep
+            gidx += 1
 
-    else:
-        assert False
     contents['details'] = details
     contents['file'] = config['file']
 
