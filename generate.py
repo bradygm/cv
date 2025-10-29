@@ -5,6 +5,7 @@
 __author__ = [
     'Brandon Amos <http://bamos.github.io>',
     'Ellis Michael <http://ellismichael.com>',
+    'Brady Moon <http://bradymoon.com>'
 ]
 
 import argparse
@@ -350,7 +351,7 @@ def get_pub_latex(context, config):
 
     if sort_bib:
         pubs = sorted(pubs, key=lambda pub: int(pub['year']), reverse=True)
-
+    # annotate year integers
     for pub in pubs:
         m = re.search(r'(\d{4})', pub['year'])
         assert m is not None
@@ -358,17 +359,84 @@ def get_pub_latex(context, config):
 
     details = ''
     gidx = 1
-    for year, year_pubs in groupby(pubs, lambda pub: pub['year_int']):
-        # print_year = year >= 2015
-        if group_by_year:
-            year_str = str(year)
-            if year == 2015:
-                year_str = "2015 and earlier"
-            details += rf'\subsection{{{year_str}}}' + '\n'
 
-        for i, pub in enumerate(year_pubs):
-            details += _get_pub_str(pub, '', gidx) + sep
-            gidx += 1
+    def is_underreview(pub):
+        val = pub.get('underreview', '')
+        if isinstance(val, bool):
+            return val
+        return str(val).lower() in ('true', '1', 'yes')
+
+    def matches_section(pub, matches):
+        # If entry is marked underreview, don't match it for normal sections
+        if is_underreview(pub):
+            return False
+        etype = pub.get('ENTRYTYPE', pub.get('entrytype', '')).lower()
+        pub_type = pub.get('pub_type', '').lower() if isinstance(pub.get('pub_type', ''), str) else ''
+        keywords = pub.get('keywords', '').lower() if isinstance(pub.get('keywords', ''), str) else ''
+        for m in matches:
+            mm = m.lower()
+            if mm == etype:
+                return True
+            if mm in pub_type:
+                return True
+            if mm in keywords:
+                return True
+        return False
+
+    # If sections are defined in the config, partition pubs accordingly
+    if 'sections' in config and isinstance(config['sections'], list):
+        for section in config['sections']:
+            matches = section.get('match', [])
+            sec_id = section.get('id', '').lower()
+            # restart numbering per section
+            gidx = 1
+            if not matches:
+                # special case: under_review section should match entries with underreview flag
+                if sec_id in ('under_review', 'under-review', 'underreview'):
+                    pubs_for_section = [p for p in pubs if is_underreview(p)]
+                else:
+                    continue
+            else:
+                pubs_for_section = [p for p in pubs if matches_section(p, matches)]
+            if not pubs_for_section:
+                continue
+            sec_title = section.get('title', '')
+            if sec_title:
+                details += rf'\subsection{{{sec_title}}}' + '\n'
+            # ensure sort order for this section
+            if sort_bib:
+                pubs_for_section = sorted(pubs_for_section, key=lambda pub: int(pub['year']), reverse=True)
+
+            if group_by_year:
+                for year, year_pubs in groupby(pubs_for_section, lambda pub: pub['year_int']):
+                    year_str = str(year)
+                    if year == 2015:
+                        year_str = "2015 and earlier"
+                    details += rf'\subsection{{{year_str}}}' + '\n'
+                    for pub in year_pubs:
+                        details += _get_pub_str(pub, '', gidx) + sep
+                        gidx += 1
+            else:
+                for pub in pubs_for_section:
+                    details += _get_pub_str(pub, '', gidx) + sep
+                    gidx += 1
+            # remove these entries so they aren't included in later sections
+            pubs = [p for p in pubs if p not in pubs_for_section]
+    else:
+        # single combined section (original behavior)
+        if group_by_year:
+            for year, year_pubs in groupby(pubs, lambda pub: pub['year_int']):
+                year_str = str(year)
+                if year == 2015:
+                    year_str = "2015 and earlier"
+                details += rf'\subsection{{{year_str}}}' + '\n'
+                for pub in year_pubs:
+                    details += _get_pub_str(pub, '', gidx) + sep
+                    gidx += 1
+        else:
+            for pub in pubs:
+                details += _get_pub_str(pub, '', gidx) + sep
+                gidx += 1
 
     contents['details'] = details
     contents['file'] = config['file']
