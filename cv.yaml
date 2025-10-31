@@ -173,7 +173,7 @@ positions:
     dates: 2016 -- 2019
     details:
      - Directed this statewide STEM outreach program, impacting over 800 K-12 students annually
-     - Designed and organized the annual competition
+     - Designed and organized the annual robotics competition
      - Worked closely with local companies to fund and promote the program
 
 
@@ -221,11 +221,20 @@ all_publications:
   error_without_author_url: False
   sections:
     - id: journals
-      title: "Journal Articles"
-      match: ["article", "misc"]
+      title: "Journal Papers"
+      match: ["article"]
     - id: conferences
-      title: "Conference Papers"
+      title: "Peer Reviewed Conference Papers (includes presentation)"
       match: ["inproceedings","conference","proceedings"]
+    - id: workshops
+      title: "Workshop Papers (includes presentation)"
+      match: ["manual"]
+    - id: datasets
+      title: "Datasets"
+      match: ["misc"]
+    - id: book_chapters
+      title: "Book Chapters"
+      match: ["inbook"]
     - id: under_review
       title: "Publications Under Review"
   author_urls:
